@@ -33,6 +33,13 @@ export default defineConfig({
       },
     })),
   ],
+  // Same as vite.config.ts, for tests that load browser modules.
+  resolve: {
+    alias: {
+      "@": path.join(import.meta.dirname, "src"),
+      "@shared": path.join(import.meta.dirname, "shared"),
+    },
+  },
   test: {
     include: ["test/**/*.test.ts"],
     setupFiles: ["./test/apply-migrations.ts"],

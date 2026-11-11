@@ -21,6 +21,7 @@ import { useReceiptAcks } from "@/features/chat/use-receipt-acks";
 import { useRoomSocket, useTypingSignal, type TypingUser } from "@/features/chat/use-room-socket";
 import { useSendMessage, type PendingImage } from "@/features/chat/use-send-message";
 import { useCurrentUser } from "@/features/profile/use-current-user";
+import { ApiError } from "@/lib/api";
 import { useI18n, type I18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import type { MessageView, QuotedMessage } from "@/types/models";
@@ -42,7 +43,10 @@ export function RoomPage() {
       </div>
     );
   }
-  if (room.isError) return <RoomNotFound />;
+  // A failed background refetch keeps the chat (and its unsent messages) on screen;
+  // only a 404 means the room is gone for us (removed, deleted, never a member).
+  const gone = room.error instanceof ApiError && room.error.status === 404;
+  if (gone || !room.data) return <RoomNotFound />;
 
   // Keyed so connection and draft state never leak between rooms.
   return <RoomChat key={room.data.id} room={room.data} />;
@@ -143,9 +147,12 @@ function RoomChat({ room }: { room: RoomDetail }) {
     if (quoted) view.replyTo = quoteOf(quoted);
   }
 
+  // Not `[history]`: the query result is a new object every render, which would
+  // rebuild the list's IntersectionObserver on every typing or presence event.
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = history;
   const loadOlder = useCallback(() => {
-    if (history.hasNextPage && !history.isFetchingNextPage) void history.fetchNextPage();
-  }, [history]);
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   function send(text: string, image?: PendingImage) {
     sender.send(text, image, replyingTo ?? undefined);

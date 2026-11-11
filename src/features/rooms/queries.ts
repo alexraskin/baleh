@@ -11,6 +11,7 @@ import type {
   UpdateRoomInput,
 } from "@shared/rooms.ts";
 
+import { messagesKey } from "@/features/chat/queries";
 import type { AvatarUpload } from "@/features/media/avatar-editor";
 import { apiFetch } from "@/lib/api";
 import { uploadFile } from "@/lib/upload";
@@ -98,6 +99,7 @@ function useRoomExit(roomId: string, request: () => Promise<unknown>) {
     onSuccess: async () => {
       await navigate("/rooms", { replace: true });
       queryClient.removeQueries({ queryKey: roomKeys.detail(roomId) });
+      queryClient.removeQueries({ queryKey: messagesKey(roomId) });
       await queryClient.invalidateQueries({ queryKey: roomKeys.all, exact: true });
     },
   });
