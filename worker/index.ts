@@ -1,3 +1,4 @@
+import pkg from "../package.json";
 import { type Auth, AUTH_BASE_PATH, getAuth, isSignUpEnabled } from "./auth.ts";
 import { deliverAccountEmails } from "./email.ts";
 import { deliverPushNotifications, drainPushDeadLetters } from "./push.ts";
@@ -79,6 +80,7 @@ const routes: Record<string, Handler> = {
   "GET /api/health": () => json({ ok: true }),
   "GET /api/config": (_request, env) =>
     json({
+      version: pkg.version,
       signUpEnabled: isSignUpEnabled(env),
       vapidPublicKey: env.VAPID_PUBLIC_KEY || null,
       turnstileSiteKey: (env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SITE_KEY) || null,

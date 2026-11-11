@@ -58,3 +58,8 @@ run = "node scripts/seed-local.ts"
 
 [tasks."auth:schema"]
 run = "node scripts/print-auth-schema.ts"
+
+[tasks.release]
+description = "Bump version (patch|minor|major), commit, tag, push; CI deploys main"
+usage = 'arg "<bump>" help="patch, minor or major"'
+run = ["npm version ${usage_bump}", "git push --follow-tags"]

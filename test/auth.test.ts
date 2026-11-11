@@ -91,6 +91,7 @@ describe("registration", () => {
     const closed = new TestClient({ SIGNUPS_ENABLED: "false" as Env["SIGNUPS_ENABLED"] });
     expect((await closed.signUp()).status).toBe(400);
     expect((await closed.request("/api/config")).data.signUpEnabled).toBe(false);
+    expect((await closed.request("/api/config")).data.version).toMatch(/^\d+\.\d+\.\d+/);
     expect((await closed.signIn(email)).status).toBe(200);
   });
 
