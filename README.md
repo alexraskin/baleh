@@ -49,7 +49,7 @@ Objects, Queues, Workers AI, R2, Email Service · Better Auth · oxlint, oxfmt, 
 
 ## Development
 
-Requires the current Node.js LTS and a Cloudflare account (for Workers AI in dev).
+Requires Node.js 26 (pinned in `mise.toml`; run `mise install`) and a Cloudflare account (for Workers AI in dev).
 
 ```sh
 npm install
