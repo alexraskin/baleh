@@ -73,7 +73,8 @@ Notes for anyone (human or agent) changing Baleh.
 
 Vars in `wrangler.jsonc`; secrets via `npx wrangler secret put`, locally in `.dev.vars`
 (see `.dev.vars.example`). Key ones: `BETTER_AUTH_SECRET` (rotating signs everyone out),
-`MESSAGE_KEY` (same value on both Workers; losing it loses every message, so keep a copy
+`MESSAGE_KEY` (Secrets Store binding to `BALEH_MESSAGE_KEY`, shared by both Workers; read with
+`await .get()`; tests seed it via `adminSecretsStore`; losing it loses every message, so keep a copy
 outside Cloudflare), `SIGNUPS_ENABLED`, `R2_*` (production uploads), `VAPID_*` (push; generate with
 `node scripts/generate-vapid-keys.ts`), `TURNSTILE_*` (bot check). With signups off, create
 users with `PASSWORD='…' node scripts/create-user.ts <email> <name> [en|fa|ar|de] [--remote]`.
