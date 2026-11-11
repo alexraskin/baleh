@@ -1,6 +1,7 @@
 import {
   useInfiniteQuery,
   useQuery,
+  useQueryClient,
   type InfiniteData,
   type QueryClient,
 } from "@tanstack/react-query";
@@ -24,7 +25,8 @@ import { apiFetch } from "@/lib/api";
 
 export type MessagesData = InfiniteData<MessagePage, string | undefined>;
 
-export const messagesKey = (roomId: string) => ["rooms", roomId, "messages"] as const;
+// Not under ["rooms", roomId]: invalidating a room's details must not refetch its history.
+export const messagesKey = (roomId: string) => ["messages", roomId] as const;
 
 function messagesPath(roomId: string, params: Record<string, string> = {}) {
   const query = new URLSearchParams(params).toString();
@@ -35,6 +37,7 @@ function messagesPath(roomId: string, params: Record<string, string> = {}) {
 const earlyArrivals = new Map<string, Message[]>();
 
 export function useMessages(roomId: string) {
+  const queryClient = useQueryClient();
   return useInfiniteQuery({
     queryKey: messagesKey(roomId),
     queryFn: async ({ pageParam }) => {
@@ -44,7 +47,12 @@ export function useMessages(roomId: string) {
       if (pageParam) return page;
       const early = earlyArrivals.get(roomId) ?? [];
       earlyArrivals.delete(roomId);
-      return { ...page, messages: mergeMessages(page.messages, early) };
+      // Read the cache now, after the fetch: it has whatever arrived while it was in flight.
+      const cached = queryClient.getQueryData<MessagesData>(messagesKey(roomId))?.pages[0];
+      return {
+        ...page,
+        messages: mergeNewestPage(page.messages, early, cached?.messages ?? []),
+      };
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => (page.hasMore ? page.messages[0]?.id : undefined),
@@ -68,6 +76,19 @@ function mergeMessages(existing: Message[], incoming: Message[]) {
   const known = new Set(existing.map((message) => message.id));
   const fresh = incoming.filter((message) => !known.has(message.id));
   return fresh.length === 0 ? existing : [...existing, ...fresh].sort(compareMessages);
+}
+
+/**
+ * A freshly fetched newest page, plus messages the server read may have missed: live
+ * ones from before the first load (`early`), and cached ones newer than anything fetched
+ * (sent or received while a refetch was in flight, or not yet on the replica it read).
+ */
+// ponytail: only newer messages survive; a deletion or translation landing mid-refetch on
+// an older one is lost until the next reconnect's catch-up.
+export function mergeNewestPage(fetched: Message[], early: Message[], cached: Message[]) {
+  const newest = fetched.at(-1);
+  const later = newest ? cached.filter((message) => compareMessages(message, newest) > 0) : cached;
+  return mergeMessages(fetched, [...early, ...later]);
 }
 
 /** Merges messages into the newest page, skipping ones already in the cache. */
