@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { signedInUser, TestClient } from "./client.ts";
+import workerSource from "../worker/index.ts?raw";
 
 async function roomWithMember() {
   const owner = await signedInUser("Owner");
@@ -69,6 +70,59 @@ describe("room access", () => {
       expect(response.status, `${method} ${path}`).toBe(404);
     }
     expect((await owner.client.request(`/api/rooms/${roomId}`)).data.name).toBe("Family");
+  });
+
+  it("gives outsiders the same answer as a missing room on every room route", async () => {
+    // Read from the router, so a new room route is covered without editing this test.
+    const roomRoutes = [
+      ...workerSource.matchAll(/"(GET|POST|PUT|PATCH|DELETE) (\/api\/rooms\/:roomId[^"]*)"/g),
+    ];
+    expect(roomRoutes.length).toBeGreaterThan(15);
+
+    const { owner, member, roomId } = await roomWithMember();
+    const sent = await owner.client.sendMessage(roomId, "secret");
+    const invited = await owner.client.request(`/api/rooms/${roomId}/invitations`, {
+      method: "POST",
+      body: { email: "someone@example.com" },
+    });
+    const outsider = await signedInUser("Outsider");
+    const ids: Record<string, string> = {
+      userId: member.id,
+      messageId: sent.data.id,
+      invitationId: invited.data.id,
+    };
+
+    for (const [, method, template] of roomRoutes) {
+      const fill = (room: string) =>
+        template!.replace(":roomId", room).replace(/:(\w+)/g, (_, name: string) => ids[name]!);
+      const options = {
+        method,
+        body:
+          method === "GET" || method === "DELETE"
+            ? undefined
+            : template!.endsWith("/receipts")
+              ? { read: ids.messageId }
+              : {},
+        headers: template!.endsWith("/ws")
+          ? { Upgrade: "websocket" }
+          : ({} as Record<string, string>),
+      };
+      const real = await outsider.client.request(fill(roomId), options);
+      const missing = await outsider.client.request(fill(crypto.randomUUID()), options);
+      expect(real.status, `${method} ${template}`).toBe(404);
+      expect(real.data, `${method} ${template}`).toEqual(missing.data);
+    }
+
+    // Nothing the outsider tried changed the room or let them in.
+    const room = await owner.client.request(`/api/rooms/${roomId}`);
+    expect(room.data.name).toBe("Family");
+    expect(room.data.members.map((m: { userId: string }) => m.userId)).toEqual([
+      owner.id,
+      member.id,
+    ]);
+    const messages = await member.client.request(`/api/rooms/${roomId}/messages`);
+    expect(messages.data.messages.map((m: { id: string }) => m.id)).toContain(ids.messageId);
+    expect((await outsider.client.request("/api/rooms")).data.rooms).toEqual([]);
   });
 
   it("returns 404 for a room that doesn't exist", async () => {
