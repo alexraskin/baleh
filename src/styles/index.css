@@ -1,0 +1,101 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/vazirmatn";
+@import "tailwindcss";
+
+/*
+ * Design tokens. Utilities are generated from these, e.g. `bg-surface`,
+ * `text-text-muted`, `border-border`, `bg-bubble-out`.
+ */
+@theme {
+  /* light-dark() follows `color-scheme` on <html>, set from the theme below. */
+  --color-bg: light-dark(#f7f6f2, #161714);
+  --color-surface: light-dark(#ffffff, #1f201c);
+  --color-surface-2: light-dark(#f0efea, #2a2b26);
+  --color-text: light-dark(#252620, #ecebe4);
+  --color-text-muted: light-dark(#85857d, #9a9a91);
+  --color-border: light-dark(#e8e6df, #33342e);
+  --color-accent: light-dark(#477b65, #6aa88c);
+  --color-accent-hover: light-dark(#396651, #82b9a0);
+  --color-accent-soft: light-dark(#e2eee7, #243a30);
+  --color-on-accent: light-dark(#ffffff, #10140f);
+  --color-bubble-in: light-dark(#f0efea, #2a2b26);
+  --color-bubble-out: light-dark(#e2eee7, #243a30);
+  --color-danger: light-dark(#b4483c, #e07a6c);
+  /* Read receipts: the one non-palette hue, so "read" is unmistakable at a glance. */
+  --color-receipt-read: light-dark(#3f8acb, #6aaee8);
+
+  /* Inter covers Latin; Vazirmatn's unicode-range picks up Persian script inline. */
+  --font-sans: "Inter Variable", "Vazirmatn Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-persian: "Vazirmatn Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.875rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.25rem;
+
+  --radius-bubble: 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(37 38 32 / 0.04), 0 4px 16px rgb(37 38 32 / 0.06);
+
+  --spacing-sidebar: 18rem;
+  --spacing-rail: 4.5rem;
+}
+
+@layer base {
+  /* Explicit choice from Settings (src/lib/theme.ts); no attribute = follow the system. */
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  html {
+    color-scheme: light dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  body {
+    @apply bg-bg font-sans text-base text-text antialiased;
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+
+  :lang(fa),
+  :lang(ar) {
+    font-family: var(--font-persian);
+    /* Arabic script reads better a touch taller. */
+    line-height: 1.8;
+  }
+
+  /* English inside a Persian page (a message, an email) goes back to Inter. */
+  :lang(en) {
+    font-family: var(--font-sans);
+  }
+
+  #root {
+    @apply min-h-dvh;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent-soft;
+  }
+}

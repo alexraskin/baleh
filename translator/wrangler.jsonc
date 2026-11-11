@@ -1,0 +1,49 @@
+/**
+ * The translation consumer, deployed as its own Worker ("baleh-translator").
+ * Shares the D1 database and the ChatRoom Durable Objects with the API Worker.
+ */
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "baleh-translator",
+  "main": "./index.ts",
+  "compatibility_date": "2026-11-04",
+  // Queue/cron only: no public URL.
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "baleh",
+      // Same database as the API Worker; paste the same id before deploying.
+      "database_id": "e11ffd19-fb3b-4b6d-8de8-2c777e3cef32",
+      "migrations_dir": "../migrations",
+    },
+  ],
+  "ai": { "binding": "AI" },
+  // The API Worker's room objects, used to push translations to connected clients.
+  "durable_objects": {
+    "bindings": [{ "name": "CHAT_ROOM", "class_name": "ChatRoom", "script_name": "baleh-web" }],
+  },
+  "queues": {
+    // The sweeper republishes jobs whose pending rows have gone quiet.
+    "producers": [{ "binding": "TRANSLATIONS", "queue": "message-translations" }],
+    "consumers": [
+      {
+        "queue": "message-translations",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+        "dead_letter_queue": "message-translations-dlq",
+      },
+      // Jobs that ran out of retries: their translations are marked failed.
+      { "queue": "message-translations-dlq", "max_batch_size": 10, "max_retries": 3 },
+    ],
+  },
+  // Same value as on baleh-web.
+  "secrets": { "required": ["MESSAGE_KEY"] },
+  // Outbox sweeper.
+  "triggers": { "crons": ["*/5 * * * *"] },
+}

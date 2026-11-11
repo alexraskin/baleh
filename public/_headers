@@ -1,0 +1,11 @@
+# Security headers for the SPA and its assets (Workers static assets). /api/* runs the
+# Worker first, so these don't apply there. connect-src allows R2 hosts for
+# presigned uploads (the account id is the R2_ACCOUNT_ID secret). Turnstile needs its script and
+# frame; its widget sets inline styles, hence style-src 'unsafe-inline'.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://*.r2.cloudflarestorage.com; frame-src https://challenges.cloudflare.com; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

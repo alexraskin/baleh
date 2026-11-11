@@ -1,0 +1,73 @@
+/*
+ * Message text at rest: AES-256-GCM with a key the Workers hold (MESSAGE_KEY), so a D1
+ * export or backup doesn't contain conversations. This is not end-to-end encryption; the
+ * Workers still see plaintext (they have to, to translate it).
+ *
+ * Format: "v1:" + base64(iv || ciphertext). The associated data names the row the text
+ * belongs to, so a ciphertext copied into another row fails to open.
+ */
+
+const VERSION = "v1:";
+const IV_BYTES = 12;
+
+let cached: { secret: string; key: Promise<CryptoKey> } | undefined;
+
+function messageKey(secret: string | undefined) {
+  // Fail closed: without a key nothing is written, rather than written in the clear.
+  if (!secret) throw new Error("MESSAGE_KEY is not set");
+  if (cached?.secret !== secret) {
+    const raw = Uint8Array.from(atob(secret), (char) => char.charCodeAt(0));
+    if (raw.length !== 32) throw new Error("MESSAGE_KEY must be 32 bytes, base64");
+    cached = {
+      secret,
+      key: crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]),
+    };
+  }
+  return cached.key;
+}
+
+/** Associated data for a message's original text. */
+export const messageAad = (messageId: string) => `message:${messageId}`;
+/** Associated data for one translation of a message. */
+export const translationAad = (messageId: string, language: string) =>
+  `translation:${messageId}:${language}`;
+
+export async function seal(secret: string | undefined, text: string, aad: string) {
+  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(aad) },
+    await messageKey(secret),
+    new TextEncoder().encode(text),
+  );
+  const bytes = new Uint8Array(IV_BYTES + ciphertext.byteLength);
+  bytes.set(iv);
+  bytes.set(new Uint8Array(ciphertext), IV_BYTES);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return VERSION + btoa(binary);
+}
+
+export async function unseal(secret: string | undefined, sealed: string, aad: string) {
+  if (!sealed.startsWith(VERSION)) throw new Error("Unknown sealed text version");
+  const bytes = Uint8Array.from(atob(sealed.slice(VERSION.length)), (char) => char.charCodeAt(0));
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: bytes.subarray(0, IV_BYTES),
+      additionalData: new TextEncoder().encode(aad),
+    },
+    await messageKey(secret),
+    bytes.subarray(IV_BYTES),
+  );
+  return new TextDecoder().decode(plaintext);
+}
+
+/** Rows written before encryption keep plaintext until the sweeper seals them. */
+export function readText(
+  secret: string | undefined,
+  sealed: string | null,
+  plain: string | null,
+  aad: string,
+) {
+  return sealed ? unseal(secret, sealed, aad) : Promise.resolve(plain);
+}

@@ -1,0 +1,19 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+ENVIRONMENT=development
+BETTER_AUTH_URL=http://localhost:5173
+# Generate with: openssl rand -base64 32
+BETTER_AUTH_SECRET=
+# Encrypts message text in D1. Set the same value on baleh-web and baleh-translator.
+# Generate with: openssl rand -base64 32. Losing it loses every message.
+MESSAGE_KEY=
+# "true" allows new accounts; production has sign-up off (see wrangler.jsonc).
+SIGNUPS_ENABLED=true
+# Browser push. Generate with: node scripts/generate-vapid-keys.ts
+# Leave empty to turn browser notifications off.
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+# Cloudflare Turnstile on sign-up, sign-in and password reset. Leave the secret empty to
+# turn it off; the site key here overrides the production one in wrangler.jsonc.
+# Test keys that always pass: 1x00000000000000000000AA / 1x0000000000000000000000000000000AA
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=

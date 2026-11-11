@@ -1,0 +1,137 @@
+/**
+ * Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/
+ * Run `npm run cf-typegen` after changing bindings or vars.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baleh-web",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "upload_source_maps": true,
+  // Hourly sweep of uploads that were never attached to a message or avatar (worker/media.ts).
+  "triggers": { "crons": ["0 * * * *"] },
+  "routes": [
+    {
+      "pattern": "baleh.dev",
+      "custom_domain": true,
+    },
+    {
+      "pattern": "www.baleh.dev",
+      "custom_domain": true,
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "baleh",
+      "migrations_dir": "migrations",
+      "database_id": "e11ffd19-fb3b-4b6d-8de8-2c777e3cef32",
+    },
+  ],
+  // One ChatRoom instance per room, addressed by room id. It holds live WebSocket
+  // connections only; messages are stored in D1.
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHAT_ROOM",
+        "class_name": "ChatRoom",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ChatRoom"],
+    },
+  ],
+  // Private media bucket: avatars and chat attachments, read through member-checked routes..
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "baleh-media",
+    },
+  ],
+  // Translation jobs, consumed by the translator Worker (translator/wrangler.jsonc).
+  // Account emails (verification, password reset, welcome, security), consumed by this Worker's own queue handler.
+  "queues": {
+    "producers": [
+      {
+        "binding": "TRANSLATIONS",
+        "queue": "message-translations",
+      },
+      {
+        "binding": "ACCOUNT_EMAILS",
+        "queue": "baleh-account-emails",
+      },
+      {
+        "binding": "PUSH_NOTIFICATIONS",
+        "queue": "baleh-push-notifications",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "baleh-account-emails",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+      },
+      {
+        "queue": "baleh-push-notifications",
+        "max_batch_size": 20,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+        "dead_letter_queue": "baleh-push-notifications-dlq",
+      },
+      // Jobs that ran out of retries: logged and dropped.
+      { "queue": "baleh-push-notifications-dlq", "max_batch_size": 20, "max_retries": 1 },
+    ],
+  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["accounts@baleh.dev", "security@baleh.dev"],
+    },
+  ],
+  // Per-user cap on writes that cost something: sending messages, requesting uploads,
+  // creating rooms and invitations. namespace_id is any account-unique integer.
+  "ratelimits": [
+    {
+      "name": "WRITE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 60, "period": 60 },
+    },
+    // Per recipient per room cap on push notifications, so a busy room buzzes a phone
+    // at most this often. Messages past it still arrive; they just don't push.
+    {
+      "name": "PUSH_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 6, "period": 60 },
+    },
+  ],
+  // Set with `npx wrangler secret put`; locally in .dev.vars. VAPID_* and TURNSTILE_SECRET_KEY
+  // may be empty (feature off). R2_* are optional and typed in worker/media.ts.
+  "secrets": {
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "MESSAGE_KEY",
+      "VAPID_PUBLIC_KEY",
+      "VAPID_PRIVATE_KEY",
+      "TURNSTILE_SECRET_KEY",
+    ],
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "BETTER_AUTH_URL": "https://baleh.dev",
+    "SIGNUPS_ENABLED": "false",
+    "VAPID_SUBJECT": "mailto:security@baleh.dev",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAF6kvr_r45_VB3Q1",
+  },
+}
