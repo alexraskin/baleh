@@ -55,7 +55,7 @@ Requires the current Node.js LTS and a Cloudflare account (for Workers AI in dev
 npm install
 cp .dev.vars.example .dev.vars   # set BETTER_AUTH_SECRET (openssl rand -base64 32)
 # local message key (Secrets Store, local copy only)
-npx wrangler secrets-store secret create a2b090f458eb447faaf814b344b71085 --name BALEH_MESSAGE_KEY --scopes workers --value "$(openssl rand -base64 32)"
+npx wrangler secrets-store secret create <store-id> --name BALEH_MESSAGE_KEY --scopes workers --value "$(openssl rand -base64 32)"
 npm run db:migrate:local
 npm run db:seed:local            # optional demo data (password123)
 npm run dev                      # http://localhost:5173
