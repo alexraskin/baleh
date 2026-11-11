@@ -33,11 +33,13 @@ export function useReceiptAcks(
       const delivered = !read && acked.current.delivered !== id ? id : undefined;
       if (!read && !delivered) return;
 
-      const previous = { ...acked.current };
-      acked.current = read ? { delivered: id, read: id } : { ...previous, delivered: id };
+      const previous = acked.current;
+      const next = read ? { delivered: id, read: id } : { ...previous, delivered: id };
+      acked.current = next;
       postReceipts(roomId, read ? { read } : { delivered }).catch(() => {
-        // Try again on the next trigger; the server ignores anything stale.
-        acked.current = previous;
+        // Try again on the next trigger; the server ignores anything stale. Unless a
+        // newer ack has gone out since: rolling back would undo that one.
+        if (acked.current === next) acked.current = previous;
       });
     }
 

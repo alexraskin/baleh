@@ -38,6 +38,19 @@ export function Composer({
   const [imageError, setImageError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const latestPick = useRef(0);
+  // The selected image's preview URL is ours until it's sent, so revoke it if we unmount.
+  const imageRef = useRef(image);
+  useEffect(() => {
+    imageRef.current = image;
+  }, [image]);
+  useEffect(
+    () => () => {
+      latestPick.current += 1;
+      revoke(imageRef.current);
+    },
+    [],
+  );
   const trimmed = text.trim();
 
   // Picking "Reply" moves you straight to typing.
@@ -59,10 +72,15 @@ export function Composer({
     const problem = mediaProblem("attachment", file.type, file.size);
     setImageError(problem);
     if (problem) return;
-    const previewUrl = URL.createObjectURL(file);
+    const pickId = ++latestPick.current;
     const size = await imageSize(file);
-    revoke(image);
-    setImage({ file, previewUrl, ...size });
+    // Picked again (or unmounted) while measuring: that pick wins.
+    if (pickId !== latestPick.current) return;
+    const previewUrl = URL.createObjectURL(file);
+    setImage((previous) => {
+      revoke(previous);
+      return { file, previewUrl, ...size };
+    });
     textareaRef.current?.focus();
   }
 
@@ -90,7 +108,9 @@ export function Composer({
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     // Ignore Enter while an IME (e.g. a Persian keyboard) is composing a character.
-    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+    // Safari reports isComposing false for the Enter that ends composition; keyCode 229 catches it.
+    const composing = event.nativeEvent.isComposing || event.keyCode === 229;
+    if (event.key === "Enter" && !event.shiftKey && !composing) {
       event.preventDefault();
       submit();
     } else if (event.key === "Escape" && replyingTo) {

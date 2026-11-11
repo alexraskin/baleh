@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { uploadFile } from "@/lib/upload";
 import type { QuotedMessage } from "@/types/models";
@@ -35,6 +35,19 @@ export interface PendingMessage {
 export function useSendMessage(roomId: string) {
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<PendingMessage[]>([]);
+  // Unsent messages die with the room view; free their image previews too.
+  const pendingRef = useRef(pending);
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
+  useEffect(
+    () => () => {
+      for (const message of pendingRef.current) {
+        if (message.image) URL.revokeObjectURL(message.image.previewUrl);
+      }
+    },
+    [],
+  );
 
   const patch = useCallback((clientId: string, changes: Partial<PendingMessage> | null) => {
     setPending((messages) => {

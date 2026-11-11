@@ -578,10 +578,11 @@ function ImageViewer({
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="m-auto max-w-[min(56rem,calc(100%-2rem))] rounded-bubble bg-surface p-1.5 text-text shadow-soft backdrop:bg-text/25"
+      // Padding on the inner div, so a click on it doesn't count as a backdrop click.
+      className="m-auto max-w-[min(56rem,calc(100%-2rem))] rounded-bubble bg-surface p-0 text-text shadow-soft backdrop:bg-text/25"
     >
       {src && (
-        <div className="flex flex-col">
+        <div className="flex flex-col p-1.5">
           {/* ltr so scrollLeft math doesn't flip in RTL. */}
           <div
             ref={frameRef}
