@@ -1,6 +1,6 @@
 import { MessageSquareOff, MessagesSquare, Settings, UserPlus, WifiOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Link, useParams } from "react-router";
 
 import { deliveryStatus } from "@shared/messages.ts";
@@ -81,6 +81,16 @@ function RoomChat({ room }: { room: RoomDetail }) {
   const newestIncomingId = confirmed.findLast((message) => message.senderId !== user.id)?.id;
   useReceiptAcks(room.id, newestIncomingId, scrollRef);
   const confirmedClientIds = new Set(confirmed.map((message) => message.clientId));
+  // A send can fail on our end (lost response) after the server saved it. It's hidden
+  // below once confirmed, but would sit in state forever with its image preview.
+  const savedAfterFailing = sender.pending
+    .filter((message) => message.status === "failed" && confirmedClientIds.has(message.clientId))
+    .map((message) => message.clientId)
+    .join();
+  const { discard } = sender;
+  useEffect(() => {
+    for (const clientId of savedAfterFailing.split(",").filter(Boolean)) discard(clientId);
+  }, [savedAfterFailing, discard]);
   const views: MessageView[] = [
     ...confirmed.map((message): MessageView => ({
       key: message.id,
