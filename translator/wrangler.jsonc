@@ -42,8 +42,14 @@
       { "queue": "message-translations-dlq", "max_batch_size": 10, "max_retries": 3 },
     ],
   },
-  // Same value as on baleh-web.
-  "secrets": { "required": ["MESSAGE_KEY"] },
+  // MESSAGE_KEY lives in the account Secrets Store, shared by both Workers.
+  "secrets_store_secrets": [
+    {
+      "binding": "MESSAGE_KEY",
+      "store_id": "a2b090f458eb447faaf814b344b71085",
+      "secret_name": "BALEH_MESSAGE_KEY",
+    },
+  ],
   // Outbox sweeper.
   "triggers": { "crons": ["*/5 * * * *"] },
 }

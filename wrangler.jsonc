@@ -121,12 +121,19 @@
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
-      "MESSAGE_KEY",
       "VAPID_PUBLIC_KEY",
       "VAPID_PRIVATE_KEY",
       "TURNSTILE_SECRET_KEY",
     ],
   },
+  // MESSAGE_KEY lives in the account Secrets Store, shared by both Workers.
+  "secrets_store_secrets": [
+    {
+      "binding": "MESSAGE_KEY",
+      "store_id": "a2b090f458eb447faaf814b344b71085",
+      "secret_name": "BALEH_MESSAGE_KEY",
+    },
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "BETTER_AUTH_URL": "https://baleh.dev",
