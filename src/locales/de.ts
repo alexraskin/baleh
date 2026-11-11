@@ -134,6 +134,8 @@ export const de: Catalog = {
 
   "support.title": "Hilfe",
   "support.body": "Fragen, Probleme oder Feedback? Schreib uns eine E-Mail, wir melden uns.",
+  "support.source":
+    "Der Code ist Open Source. Sieh ihn dir an, melde Fehler oder schlage Funktionen auf GitHub vor.",
 
   "misc.notFound": "Nicht gefunden",
   "misc.notFoundTitle": "Seite nicht gefunden",
