@@ -36,7 +36,10 @@ run = "vite preview"
 [tasks.deploy]
 description = "Build, deploy web Worker, then translator"
 depends = ["build"]
-run = ["wrangler deploy", "wrangler deploy -c dist/baleh_translator/wrangler.json"]
+run = [
+  "wrangler deploy --tag v$(node -p 'require(\"./package.json\").version') --message \"$(git rev-parse --short HEAD)\"",
+  "wrangler deploy -c dist/baleh_translator/wrangler.json --tag v$(node -p 'require(\"./package.json\").version') --message \"$(git rev-parse --short HEAD)\"",
+]
 
 [tasks.cf-typegen]
 run = "wrangler types --strict-vars=false"
