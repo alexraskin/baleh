@@ -4,8 +4,8 @@ Notes for anyone (human or agent) changing Baleh.
 
 ## Commands
 
-- `npm run check` (typecheck + oxlint + oxfmt check) and `npm test` must pass; CI runs both.
-- `npm run format` to fix formatting. `npm run cf-typegen` after any binding change.
+- `mise run check` (typecheck + oxlint + oxfmt check) and `mise run test` must pass; CI runs both.
+- `mise run format` to fix formatting. `mise run cf-typegen` after any binding change.
 - Tests run in the Workers runtime; every migration is applied to a fresh DB per test file
   (`test/apply-migrations.ts`). Queues, email and `fetch` are faked; tests never send anything.
 
@@ -52,7 +52,7 @@ Notes for anyone (human or agent) changing Baleh.
 - Never edit an applied migration; add one (`npx wrangler d1 migrations create baleh <name>`).
 - CI applies remote migrations **before** deploying code, so migrations must be backward
   compatible with the running Worker (keep them additive).
-- Auth schema change: edit `worker/auth-options.ts`, `npm run auth:schema`, add the diff as a migration.
+- Auth schema change: edit `worker/auth-options.ts`, `mise run auth:schema`, add the diff as a migration.
 
 ## Code conventions
 

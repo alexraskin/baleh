@@ -1,6 +1,6 @@
 /**
  * Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/
- * Run `npm run cf-typegen` after changing bindings or vars.
+ * Run `mise run cf-typegen` after changing bindings or vars.
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",

@@ -2,7 +2,7 @@
  * Seeds the local D1 database with demo users, rooms and messages. Safe to re-run:
  * it replaces the seed rows (fixed ids) and leaves everything else alone.
  *
- *   npm run db:seed:local      (after npm run db:migrate:local)
+ *   mise run db:seed:local      (after mise run db:migrate:local)
  *
  * Every seed user's password is "password123".
  */

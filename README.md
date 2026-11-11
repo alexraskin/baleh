@@ -40,7 +40,7 @@ their own language and reads everyone else in theirs: messages are translated au
   </tr>
 </table>
 
-Screenshots use the demo data from `npm run db:seed:local`.
+Screenshots use the demo data from `mise run db:seed:local`.
 
 </details>
 
@@ -49,30 +49,30 @@ Objects, Queues, Workers AI, R2, Email Service · Better Auth · oxlint, oxfmt, 
 
 ## Development
 
-Requires the current Node.js LTS and a Cloudflare account (for Workers AI in dev).
+Requires Node.js 26 (pinned in `mise.toml`; run `mise install`) and a Cloudflare account (for Workers AI in dev).
 
 ```sh
 npm install
 cp .dev.vars.example .dev.vars   # set BETTER_AUTH_SECRET (openssl rand -base64 32)
 # local message key (Secrets Store, local copy only)
 npx wrangler secrets-store secret create <store-id> --name BALEH_MESSAGE_KEY --scopes workers --value "$(openssl rand -base64 32)"
-npm run db:migrate:local
-npm run db:seed:local            # optional demo data (password123)
-npm run dev                      # http://localhost:5173
+mise run db:migrate:local
+mise run db:seed:local           # optional demo data (password123)
+mise run dev                     # http://localhost:5173
 ```
 
 Dev calls the real Workers AI model, so run `npx wrangler login` first, or
-`BALEH_OFFLINE=1 npm run dev` to skip translation. Emails aren't sent in dev; they're printed
+`BALEH_OFFLINE=1 mise run dev` to skip translation. Emails aren't sent in dev; they're printed
 to the console and saved under `.wrangler/tmp/email/`.
 
 ## Scripts
 
 ```sh
-npm run check        # typecheck + lint + format:check
-npm test             # Worker tests in the Workers runtime
-npm run deploy       # build, deploy web Worker, then translator
-npm run cf-typegen   # after changing bindings
-npm run db:migrate:remote
+mise run check        # typecheck + lint + format:check
+mise run test        # Worker tests in the Workers runtime
+mise run deploy       # build, deploy web Worker, then translator
+mise run cf-typegen   # after changing bindings
+mise run db:migrate:remote
 ```
 
 ## How it works
@@ -142,7 +142,7 @@ npx wrangler queues create baleh-account-emails
 npx wrangler queues create baleh-push-notifications
 npx wrangler queues create baleh-push-notifications-dlq
 npx wrangler r2 bucket create baleh-media
-npm run db:migrate:remote
+mise run db:migrate:remote
 ```
 
 Browsers upload straight to R2 with presigned URLs, so the bucket needs a CORS rule for your
@@ -201,7 +201,7 @@ Without the Turnstile secret, the bot check is off.
 
 ```sh
 npx wrangler deploy --dry-run   # check both configs
-npm run deploy                  # web first: the translator binds ChatRoom from baleh-web
+mise run deploy                 # web first: the translator binds ChatRoom from baleh-web
 ```
 
 Public signups are controlled by `SIGNUPS_ENABLED` in `wrangler.jsonc`. With them off, create
@@ -209,7 +209,7 @@ accounts with `PASSWORD='…' node scripts/create-user.ts <email> <name> [en|fa|
 
 **5. Continuous deployment (optional)**
 
-The included GitHub Actions workflow runs `npm run check` and `npm test` on every push and PR,
+The included GitHub Actions workflow runs `mise run check` and `mise run test` on every push and PR,
 and on `main` applies migrations and then deploys. Add `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` as repository secrets to enable it.
 
@@ -219,7 +219,7 @@ Issues and pull requests are welcome. Before opening a PR:
 
 - Read [`AGENTS.md`](AGENTS.md) for the project layout, conventions and the invariants that
   must not break (encryption at rest, membership checks, idempotent sends and translations).
-- Run `npm run check` and `npm test`; CI runs both.
+- Run `mise run check` and `mise run test`; CI runs both.
 - Add new UI strings to every locale in `src/locales/`, and use logical (RTL-safe) utilities.
 - Add schema changes as a new migration; never edit an applied one.
 
