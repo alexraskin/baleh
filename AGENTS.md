@@ -85,7 +85,7 @@ and `PUSH_LIMITER`. Durable Object class changes need a new `migrations` entry i
 
 ## Deploy
 
-CI deploys `main` on push (needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` secrets).
+CI deploys on `v*` tag push, i.e. `mise run release patch|minor|major` (needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` secrets).
 One-time setup: D1 `baleh`, queues (`message-translations`, `-dlq`, `baleh-account-emails`,
 `baleh-push-notifications`, `-dlq`), R2 `baleh-media` with PUT CORS for the site origin,
 Email Service domain onboarding for `baleh.dev`, secrets above. Ids in `wrangler.jsonc`

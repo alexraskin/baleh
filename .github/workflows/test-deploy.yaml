@@ -3,6 +3,8 @@ name: Test and deploy
 on:
   push:
     branches: [main]
+    # Version tags (pushed by `mise run release`) are the only thing that deploys.
+    tags: ["v*"]
     paths-ignore: &docs
       - "**.md"
       - LICENSE
@@ -22,7 +24,7 @@ jobs:
 
   deploy:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-production
