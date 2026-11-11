@@ -1,2 +1,60 @@
 [tools]
 node = "26.13.1"
+
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+[tasks.dev]
+run = "vite"
+
+[tasks.build]
+run = "tsc -b && vite build"
+
+[tasks.typecheck]
+run = "tsc -b"
+
+[tasks.lint]
+run = "oxlint"
+
+[tasks."lint:fix"]
+run = "oxlint --fix"
+
+[tasks.format]
+run = "oxfmt"
+
+[tasks."format:check"]
+run = "oxfmt --check"
+
+[tasks.check]
+description = "typecheck + lint + format:check"
+depends = ["typecheck", "lint", "format:check"]
+
+[tasks.preview]
+depends = ["build"]
+run = "vite preview"
+
+[tasks.deploy]
+description = "Build, deploy web Worker, then translator"
+depends = ["build"]
+run = ["wrangler deploy", "wrangler deploy -c dist/baleh_translator/wrangler.json"]
+
+[tasks.cf-typegen]
+run = "wrangler types --strict-vars=false"
+
+[tasks.test]
+run = "vitest run"
+
+[tasks."test:watch"]
+run = "vitest"
+
+[tasks."db:migrate:local"]
+run = "wrangler d1 migrations apply baleh --local"
+
+[tasks."db:migrate:remote"]
+run = "wrangler d1 migrations apply baleh --remote"
+
+[tasks."db:seed:local"]
+run = "node scripts/seed-local.ts"
+
+[tasks."auth:schema"]
+run = "node scripts/print-auth-schema.ts"

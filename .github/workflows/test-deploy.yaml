@@ -17,8 +17,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
       - run: npm ci
-      - run: npm run check
-      - run: npm test
+      - run: mise run check
+      - run: mise run test
 
   deploy:
     needs: test
@@ -36,5 +36,5 @@ jobs:
       - run: npm ci
       # Migrations run before the new code ships, so they must stay backward compatible
       # with the currently deployed Worker.
-      - run: npm run db:migrate:remote
-      - run: npm run deploy
+      - run: mise run db:migrate:remote
+      - run: mise run deploy
