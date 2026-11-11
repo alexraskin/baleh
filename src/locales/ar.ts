@@ -136,6 +136,8 @@ export const ar: Catalog = {
 
   "support.title": "الدعم",
   "support.body": "لديك سؤال أو مشكلة أو ملاحظة؟ راسلنا وسنرد عليك.",
+  "support.source":
+    "الشيفرة مفتوحة المصدر. اطّلع عليها أو أبلغ عن الأخطاء أو اقترح ميزات على GitHub.",
 
   "misc.notFound": "غير موجود",
   "misc.notFoundTitle": "الصفحة غير موجودة",

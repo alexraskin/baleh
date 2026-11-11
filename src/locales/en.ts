@@ -132,6 +132,7 @@ export const en = {
 
   "support.title": "Support",
   "support.body": "Questions, problems or feedback? Email us and we'll get back to you.",
+  "support.source": "The code is open source. Read it, report bugs or suggest features on GitHub.",
 
   "misc.notFound": "Not found",
   "misc.notFoundTitle": "Page not found",

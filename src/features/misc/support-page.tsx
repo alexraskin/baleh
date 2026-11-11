@@ -19,6 +19,16 @@ export function SupportPage() {
       >
         {brand.supportEmail}
       </a>
+      <p>{t("support.source")}</p>
+      <a
+        href={brand.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        dir="ltr"
+        className="font-medium text-accent hover:text-accent-hover"
+      >
+        github.com/alexraskin/baleh
+      </a>
       <Link to="/" className="font-medium text-accent hover:text-accent-hover">
         {t("common.back")}
       </Link>

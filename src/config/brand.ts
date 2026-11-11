@@ -5,6 +5,7 @@
 export const brand = {
   name: "Baleh",
   supportEmail: "hello@baleh.dev",
+  sourceUrl: "https://github.com/alexraskin/baleh",
 } as const;
 
 export function pageTitle(title?: string): string {
