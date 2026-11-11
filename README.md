@@ -210,7 +210,7 @@ accounts with `PASSWORD='…' node scripts/create-user.ts <email> <name> [en|fa|
 **5. Continuous deployment (optional)**
 
 The included GitHub Actions workflow runs `mise run check` and `mise run test` on every push and PR,
-and on `main` applies migrations and then deploys. Add `CLOUDFLARE_API_TOKEN` and
+and on a version tag (`mise run release patch|minor|major`) applies migrations and then deploys. Add `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` as repository secrets to enable it.
 
 ## Contributing
