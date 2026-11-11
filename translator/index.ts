@@ -9,6 +9,7 @@ import {
   type TranslationJob,
   type TranslationProvider,
 } from "../worker/translation.ts";
+import type { MessageKey } from "../worker/sealed.ts";
 import { messageAad, readText, seal, translationAad } from "../worker/sealed.ts";
 
 /*
@@ -25,7 +26,7 @@ export interface TranslatorEnv {
   CHAT_ROOM: Env["CHAT_ROOM"];
   TRANSLATIONS: Queue<TranslationJob>;
   /** Base64 AES-256 key for message text at rest; the same secret as baleh-web's. */
-  MESSAGE_KEY: string;
+  MESSAGE_KEY: MessageKey;
 }
 
 export const DEAD_LETTER_QUEUE = "message-translations-dlq";

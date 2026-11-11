@@ -1,10 +1,16 @@
-import { applyD1Migrations } from "cloudflare:test";
+import { adminSecretsStore, applyD1Migrations } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { beforeEach, vi } from "vitest";
 
 import { BREACHED_PASSWORD } from "./client.ts";
 
 await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+
+// MESSAGE_KEY is a Secrets Store binding; seed it with a throwaway key.
+{
+  using admin = adminSecretsStore(env.MESSAGE_KEY);
+  await admin.create("dGVzdC1tZXNzYWdlLWtleS0zMi1ieXRlcy1sb25nISE=");
+}
 
 const breachedSha1 = [
   ...new Uint8Array(

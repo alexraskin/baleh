@@ -5,7 +5,6 @@ import { defineConfig } from "vitest/config";
 
 const secrets = {
   BETTER_AUTH_SECRET: "test-secret-that-is-at-least-32-characters-long",
-  MESSAGE_KEY: "dGVzdC1tZXNzYWdlLWtleS0zMi1ieXRlcy1sb25nISE=",
   // A throwaway pair for tests only
   VAPID_PUBLIC_KEY:
     "BOlgPlowJsG1m4sH7cFjOGzBKXf__IypeB3IhDlvVExMrT4gdIBQWQaL1WvDXZLdjPVB6GINrGm9hJUuWgQefO8",

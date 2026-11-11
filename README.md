@@ -53,7 +53,9 @@ Requires the current Node.js LTS and a Cloudflare account (for Workers AI in dev
 
 ```sh
 npm install
-cp .dev.vars.example .dev.vars   # set BETTER_AUTH_SECRET and MESSAGE_KEY (openssl rand -base64 32)
+cp .dev.vars.example .dev.vars   # set BETTER_AUTH_SECRET (openssl rand -base64 32)
+# local message key (Secrets Store, local copy only)
+npx wrangler secrets-store secret create <store-id> --name BALEH_MESSAGE_KEY --scopes workers --value "$(openssl rand -base64 32)"
 npm run db:migrate:local
 npm run db:seed:local            # optional demo data (password123)
 npm run dev                      # http://localhost:5173
@@ -174,13 +176,15 @@ Email Service. In the dashboard, open Email Service, onboard your domain for sen
 it add the SPF/DKIM DNS records. The sender addresses in `send_email.allowed_sender_addresses`
 must be on that domain.
 
-**3. Secrets** (on `baleh-web`; the translator needs only `MESSAGE_KEY`)
+**3. Secrets** (on `baleh-web`). The message key is one account Secrets Store secret,
+`BALEH_MESSAGE_KEY`, bound as `MESSAGE_KEY` in both Workers (`secrets_store_secrets`; set
+`store_id` to your store, `npx wrangler secrets-store store list --remote`).
 
 ```sh
 openssl rand -base64 32 | npx wrangler secret put BETTER_AUTH_SECRET  # rotating signs everyone out
 openssl rand -base64 32                         # message key: keep a copy outside Cloudflare
-npx wrangler secret put MESSAGE_KEY             # paste it; losing it loses every message
-npx wrangler secret put MESSAGE_KEY --name baleh-translator   # same value
+npx wrangler secrets-store secret create <store-id> --name BALEH_MESSAGE_KEY --scopes workers --remote
+                                                # paste it; losing it loses every message
 npx wrangler secret put R2_ACCOUNT_ID           # Cloudflare account id (R2 S3 endpoint host)
 npx wrangler secret put R2_ACCESS_KEY_ID        # R2 API token (Object Read & Write on baleh-media)
 npx wrangler secret put R2_SECRET_ACCESS_KEY

@@ -357,7 +357,9 @@ describe("text at rest", () => {
   });
 
   it("refuses to send without a key rather than storing plaintext", async () => {
-    const { client } = await signedInUser("Sam", { MESSAGE_KEY: "" });
+    const { client } = await signedInUser("Sam", {
+      MESSAGE_KEY: { get: async () => "" },
+    });
     const room = (await client.request("/api/rooms", { method: "POST", body: { name: "Solo" } }))
       .data;
     const sent = await client.sendMessage(room.id, "Good morning");
